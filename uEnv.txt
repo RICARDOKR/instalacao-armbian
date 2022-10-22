@@ -1,0 +1,5 @@
+LINUX=/zImage
+INITRD=/uInitrd
+#FDT=/dtb/amlogic/meson-sm1-x96-max-plus-100m.dtb
+FDT=/dtb/amlogic/meson-sm1-tx3-bz.dtb
+APPEND=root=UUID=ce4dd927-9e0d-4cd5-9698-003b7e4e1710 rootflags=data=writeback rw rootfstype=ext4 console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
