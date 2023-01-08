@@ -50,7 +50,7 @@ install_dependences() {
   echo ""
   echo "A instalar dependencias..."
   echo ""
-  sudo apt-get install \
+  apt-get install \
   apparmor \
   jq \
   wget \
@@ -59,6 +59,7 @@ install_dependences() {
   libglib2.0-bin \
   network-manager \
   dbus \
+  lsb-release \
   systemd-journal-remote -y
 }
 
@@ -69,7 +70,8 @@ install_docker() {
   echo ""
   echo "A instalar Docker..."
   echo ""
-  curl -fsSL https://get.docker.com | sh
+#  curl -fsSL https://get.docker.com | sh
+  curl -fsSL get.docker.com | sh
 }
 
 # ------------------------------------------------------------------------------
@@ -81,7 +83,8 @@ install_osagents() {
   echo ""
   wget https://github.com/home-assistant/os-agent/releases/download/1.4.1/os-agent_1.4.1_linux_aarch64.deb
   sudo dpkg -i os-agent_1.4.1_linux_aarch64.deb
-  systemctl status haos-agent --no-pager
+  gdbus introspect --system --dest io.hass.os --object-path /io/hass/os
+#  systemctl status haos-agent --no-pager
 }
 
 # ------------------------------------------------------------------------------
