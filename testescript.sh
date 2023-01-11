@@ -39,9 +39,9 @@ repair_apparmor_and_cgroups() {
     echo ""
     echo "A reparar alertas de apparmor e cgroups"
     echo ""
-    if ! grep -q "cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=false apparmor=1 security=apparmor" "/boot/uEnv.txt"; then
+  if ! grep -q "cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=false apparmor=1 security=apparmor" "/boot/uEnv.txt"; then
     sed -i 's/APPEND.*/& cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=false apparmor=1 security=apparmor/g' /boot/uEnv.txt
-    fi
+  fi
 }
 
 
