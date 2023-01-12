@@ -126,13 +126,13 @@ main() {
   fi
 
   # Install ALL THE THINGS!
-  update_hostname
-  repair_apparmor_and_cgroups
-  install_armbian-software
-  install_dependences
-  install_docker
-  install_osagents
-  install_hassio
+#  update_hostname
+#  repair_apparmor_and_cgroups
+#  install_armbian-software
+#  install_dependences
+#  install_docker
+#  install_osagents
+#  install_hassio
 
   # Friendly closing message
   ip_addr=$(hostname -I | cut -d ' ' -f1)
