@@ -94,7 +94,6 @@ install_hassio() {
   apt-get update
   apt-get install udisks2 wget -y
   wget https://github.com/home-assistant/supervised-installer/releases/latest/download/homeassistant-supervised.deb
-  sudo BYPASS_OS_CHECK=true
   sudo dpkg -i homeassistant-supervised.deb
 }
 
