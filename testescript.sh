@@ -33,19 +33,6 @@ update_hostname() {
 }
 
 # ------------------------------------------------------------------------------
-# Repair apparmor and cgroups
-# ------------------------------------------------------------------------------
-repair_apparmor_and_cgroups() {
-    echo ""
-    echo "A reparar alertas de apparmor e cgroups"
-    echo ""
-  if ! grep -q "cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=false apparmor=1 security=apparmor" "/boot/uEnv.txt"; then
-    sed -i 's/APPEND.*/& cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=false apparmor=1 security=apparmor/g' /boot/uEnv.txt
-  fi
-}
-
-
-# ------------------------------------------------------------------------------
 # Installs armbian software
 # ------------------------------------------------------------------------------
 install_armbian-software() {
@@ -63,7 +50,7 @@ install_dependences() {
   echo ""
   echo "A instalar dependencias..."
   echo ""
-  apt-get install \
+  sudo apt-get install \
   apparmor \
   jq \
   wget \
@@ -72,7 +59,6 @@ install_dependences() {
   libglib2.0-bin \
   network-manager \
   dbus \
-  lsb-release \
   systemd-journal-remote -y
 }
 
@@ -83,8 +69,7 @@ install_docker() {
   echo ""
   echo "A instalar Docker..."
   echo ""
-#  curl -fsSL https://get.docker.com | sh
-  curl -fsSL get.docker.com | sh
+  curl -fsSL https://get.docker.com | sh
 }
 
 # ------------------------------------------------------------------------------
@@ -96,8 +81,7 @@ install_osagents() {
   echo ""
   wget https://github.com/home-assistant/os-agent/releases/download/1.4.1/os-agent_1.4.1_linux_aarch64.deb
   sudo dpkg -i os-agent_1.4.1_linux_aarch64.deb
-  gdbus introspect --system --dest io.hass.os --object-path /io/hass/os
-#  systemctl status haos-agent --no-pager
+  systemctl status haos-agent --no-pager
 }
 
 # ------------------------------------------------------------------------------
@@ -110,6 +94,7 @@ install_hassio() {
   apt-get update
   apt-get install udisks2 wget -y
   wget https://github.com/home-assistant/supervised-installer/releases/latest/download/homeassistant-supervised.deb
+  sudo BYPASS_OS_CHECK=true
   sudo dpkg -i homeassistant-supervised.deb
 }
 
@@ -126,13 +111,12 @@ main() {
   fi
 
   # Install ALL THE THINGS!
-#  update_hostname
-#  repair_apparmor_and_cgroups
-#  install_armbian-software
-#  install_dependences
-#  install_docker
-#  install_osagents
-#  install_hassio
+  update_hostname
+  install_armbian-software
+  install_dependences
+  install_docker
+  install_osagents
+  install_hassio
 
   # Friendly closing message
   ip_addr=$(hostname -I | cut -d ' ' -f1)
