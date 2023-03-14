@@ -14,6 +14,24 @@ set -o pipefail # Return exit status of the last command in the pipe that failed
 # GLOBALS
 # ==============================================================================
 readonly HOSTNAME="homeassistant"
+readonly OS_AGENT="os-agent_1.2.2_linux_aarch64.deb"
+readonly OS_AGENT_PATH="https://github.com/home-assistant/os-agent/releases/download/1.2.2/"
+#readonly HA_INSTALLER="homeassistant-supervised.deb"
+#readonly HA_INSTALLER_PATH="https://github.com/home-assistant/supervised-installer/releases/latest/download/"
+#https://github.com/home-assistant/os-agent/releases/download/1.4.1/os-agent_1.4.1_linux_aarch64.deb
+
+readonly REQUIREMENTS=(
+  apparmor-utils
+  apt-transport-https
+  avahi-daemon
+  ca-certificates
+  curl
+  dbus
+  jq
+  network-manager
+  socat
+  software-properties-common
+)
 
 # ==============================================================================
 # SCRIPT LOGIC
@@ -23,43 +41,31 @@ readonly HOSTNAME="homeassistant"
 # Ensures the hostname of the Pi is correct.
 # ------------------------------------------------------------------------------
 update_hostname() {
-    hostname
-    sudo hostname homeassistant
+  old_hostname=$(< /etc/hostname)
+  if [[ "${old_hostname}" != "${HOSTNAME}" ]]; then
+    sed -i "s/${old_hostname}/${HOSTNAME}/g" /etc/hostname
+    sed -i "s/${old_hostname}/${HOSTNAME}/g" /etc/hosts
     hostname "${HOSTNAME}"
     echo ""
-    echo "O nome do host será alterado na próxima reinicialização para: ${HOSTNAME}"
+    echo "O nome do host será alterado na próxima reinicialização: ${HOSTNAME}"
     echo ""
-
+  fi
 }
 
 # ------------------------------------------------------------------------------
-# Installs armbian software
+# Installs all required software packages and tools
 # ------------------------------------------------------------------------------
-install_armbian-software() {
+install_requirements() {
   echo ""
-  echo "A instalar Armbian Software..."
+  echo "Atualizando APT packages list..."
   echo ""
-  armbian-software || :
-}
-
-
-# ------------------------------------------------------------------------------
-# Installs dependences
-# ------------------------------------------------------------------------------
-install_dependences() {
+  apt-get --allow-releaseinfo-change update
+  apt-get install software-properties-common
+  apt-get update
   echo ""
-  echo "A instalar dependencias..."
+  echo "Certifique-se de que todos os requisitos estejam instalados..."
   echo ""
-  sudo apt-get install \
-  apparmor \
-  jq \
-  wget \
-  curl \
-  udisks2 \
-  libglib2.0-bin \
-  network-manager \
-  dbus \
-  systemd-journal-remote -y
+  apt-get install -y "${REQUIREMENTS[@]}"
 }
 
 # ------------------------------------------------------------------------------
@@ -73,18 +79,6 @@ install_docker() {
 }
 
 # ------------------------------------------------------------------------------
-# Install os-agents
-# ------------------------------------------------------------------------------
-install_osagents() {
-  echo ""
-  echo "A instalar os agents..."
-  echo ""
-  wget https://github.com/home-assistant/os-agent/releases/download/1.4.1/os-agent_1.4.1_linux_aarch64.deb
-  sudo dpkg -i os-agent_1.4.1_linux_aarch64.deb
-  systemctl status haos-agent --no-pager
-}
-
-# ------------------------------------------------------------------------------
 # Installs and starts Hass.io
 # ------------------------------------------------------------------------------
 install_hassio() {
@@ -93,8 +87,33 @@ install_hassio() {
   echo ""
   apt-get update
   apt-get install udisks2 wget -y
+  wget https://github.com/home-assistant/os-agent/releases/download/1.4.1/os-agent_1.4.1_linux_aarch64.deb
+  sudo dpkg -i os-agent_1.4.1_linux_aarch64.deb
   wget https://github.com/home-assistant/supervised-installer/releases/latest/download/homeassistant-supervised.deb
   sudo dpkg -i homeassistant-supervised.deb
+}
+
+# ------------------------------------------------------------------------------
+# Configure network-manager to disable random MAC-address on Wi-Fi
+# ------------------------------------------------------------------------------
+config_network_manager() {
+  {
+    echo -e "\n[device]";
+    echo "wifi.scan-rand-mac-address=no";
+    echo -e "\n[connection]";
+    echo "wifi.clone-mac-address=preserve";
+  } >> "/etc/NetworkManager/NetworkManager.conf"
+}
+
+# ------------------------------------------------------------------------------
+# Upgrade final
+# ------------------------------------------------------------------------------
+upgrade_final() {
+  echo ""
+  echo "Upgrade..."
+  echo ""
+  sudo apt update
+  sudo apt upgrade -y
 }
 
 # ==============================================================================
@@ -111,11 +130,11 @@ main() {
 
   # Install ALL THE THINGS!
   update_hostname
-  install_armbian-software
-  install_dependences
+  install_requirements
+  config_network_manager
   install_docker
-  install_osagents
   install_hassio
+  upgrade_final
 
   # Friendly closing message
   ip_addr=$(hostname -I | cut -d ' ' -f1)
