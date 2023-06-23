@@ -59,7 +59,8 @@ install_dependences() {
   libglib2.0-bin \
   network-manager \
   dbus \
-  systemd-journal-remote -y
+  systemd-journal-remote \
+  systemd-resolved -y
 }
 
 # ------------------------------------------------------------------------------
